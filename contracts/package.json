@@ -1,0 +1,14 @@
+{
+  "name": "vanta-contracts",
+  "version": "1.0.0",
+  "description": "Vanta NFT Smart Contracts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "hardhat": "^2.19.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0"
+  }
+}

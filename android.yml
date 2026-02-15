@@ -1,0 +1,36 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Buildozer
+      run: pip install buildozer
+
+    - name: Download JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+
+    - name: Build with Buildozer
+      run: |
+        PIP_BREAK_SYSTEM_PACKAGES=1 buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-apk
+        path: bin/*.apk

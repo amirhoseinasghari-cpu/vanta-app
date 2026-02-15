@@ -1,0 +1,22 @@
+# Vanta - NFT Art Platform Dependencies
+
+# Kivy - Cross-platform UI (Android, iOS, macOS)
+kivy[base]>=2.2.0
+
+# Biometric authentication
+plyer>=2.1.0
+
+# FastAPI - Backend API
+fastapi>=0.109.0
+uvicorn>=0.27.0
+
+# Blockchain
+web3>=6.11.0
+eth-account>=0.10.0
+
+# Security & Validation
+pydantic>=2.5.0
+
+# Optional: For building mobile apps
+# buildozer  # Android
+# kivy-ios    # iOS

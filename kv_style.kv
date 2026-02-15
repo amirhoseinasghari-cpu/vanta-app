@@ -1,0 +1,448 @@
+#:kivy 2.2.0
+# Vanta - Vantablack Theme
+# Background: Pure Black (0, 0, 0, 1)
+# Text: White (1, 1, 1, 1)
+# Accents: Subtle Grey (0.2, 0.2, 0.2)
+
+<ScreenManager>:
+    HomeScreen:
+        name: 'home'
+    PaintScreen:
+        name: 'paint'
+    SellScreen:
+        name: 'sell'
+    WalletScreen:
+        name: 'wallet'
+    AnalyticsScreen:
+        name: 'analytics'
+    SettingsScreen:
+        name: 'settings'
+
+# Base button style
+<VantaButton@Button>:
+    background_color: 0.2, 0.2, 0.2, 1
+    color: 1, 1, 1, 1
+    size_hint: None, None
+    size: 120, 50
+    font_size: '14sp'
+    border: 0, 0, 1, 0
+    canvas.before:
+        Color:
+            rgba: 0.15, 0.15, 0.15, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<VantaIconTile@Button>:
+    background_color: 0.1, 0.1, 0.1, 1
+    color: 1, 1, 1, 1
+    size_hint: None, None
+    size: 140, 140
+    font_size: '18sp'
+    canvas.before:
+        Color:
+            rgba: 0.2, 0.2, 0.2, 1
+        Line:
+            rectangle: self.x, self.y, self.width, self.height
+            width: 1
+
+<HomeScreen>:
+    name: 'home'
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 40
+        spacing: 30
+
+        Label:
+            id: app_title
+            text: app.translations.get('app_title')
+            font_size: '36sp'
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 60
+
+        GridLayout:
+            cols: 2
+            spacing: 30
+            padding: 20
+            size_hint_y: None
+            height: 450
+
+            VantaIconTile:
+                id: paint_tile
+                text: app.translations.get('paint')
+                on_release: app.root.current = 'paint'
+
+            VantaIconTile:
+                id: sell_tile
+                text: app.translations.get('sell')
+                on_release: app.root.current = 'sell'
+
+            VantaIconTile:
+                id: wallet_tile
+                text: app.translations.get('wallet')
+                on_release: app.root.current = 'wallet'
+
+            VantaIconTile:
+                id: settings_tile
+                text: app.translations.get('settings')
+                on_release: app.root.current = 'settings'
+
+            VantaIconTile:
+                id: analytics_tile
+                text: app.translations.get('analytics')
+                on_release: app.root.current = 'analytics'
+
+<PaintScreen>:
+    name: 'paint'
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 10
+
+            VantaButton:
+                id: paint_back_btn
+                text: app.translations.get('back')
+                on_release: app.root.current = 'home'
+
+            VantaButton:
+                id: paint_clear_btn
+                text: app.translations.get('clear_canvas')
+                on_release: root.clear_canvas()
+
+            VantaButton:
+                id: paint_save_btn
+                text: app.translations.get('save_art')
+                on_release: root.save_art()
+
+        DrawingCanvas:
+            id: canvas_widget
+
+<SellScreen>:
+    name: 'sell'
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 10
+
+            VantaButton:
+                text: app.translations.get('back')
+                on_release: app.root.current = 'home'
+
+            Label:
+                text: app.translations.get('marketplace')
+                color: 1, 1, 1, 1
+                size_hint_x: None
+                width: 150
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 15
+            padding: 20
+
+            Label:
+                text: app.translations.get('list_price')
+                color: 1, 1, 1, 1
+                size_hint_y: None
+                height: 30
+
+            TextInput:
+                id: price_input
+                multiline: False
+                input_filter: 'float'
+                hint_text: '0.01'
+                size_hint_y: None
+                height: 40
+                background_color: 0.15, 0.15, 0.15, 1
+                foreground_color: 1, 1, 1, 1
+                cursor_color: 1, 1, 1, 1
+
+            VantaButton:
+                text: app.translations.get('list_for_sale')
+                on_release: root.list_for_sale()
+
+            ScrollView:
+                id: nft_scroll
+
+                GridLayout:
+                    id: nft_grid
+                    cols: 2
+                    size_hint_y: None
+                    height: self.minimum_height
+                    spacing: 10
+
+<WalletScreen>:
+    name: 'wallet'
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 20
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+
+            VantaButton:
+                text: app.translations.get('back')
+                on_release: app.root.current = 'home'
+
+        Label:
+            id: wallet_title
+            text: app.translations.get('my_wallet')
+            font_size: '24sp'
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 40
+
+        Label:
+            id: address_label
+            text: app.translations.get('address') + ':'
+            color: 0.7, 0.7, 0.7, 1
+            size_hint_y: None
+            height: 25
+
+        Label:
+            id: address_value
+            text: app.wallet_manager.address or '---'
+            color: 1, 1, 1, 1
+            font_size: '12sp'
+            size_hint_y: None
+            height: 30
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+
+        Label:
+            id: balance_label
+            text: app.translations.get('balance') + ':'
+            color: 0.7, 0.7, 0.7, 1
+            size_hint_y: None
+            height: 25
+
+        Label:
+            id: balance_value
+            text: '0.00 ' + app.translations.get('eth')
+            color: 1, 1, 1, 1
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        Label:
+            id: network_label
+            text: app.translations.get('network') + ':'
+            color: 0.7, 0.7, 0.7, 1
+            size_hint_y: None
+            height: 25
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+            spacing: 15
+
+            VantaButton:
+                id: network_eth_btn
+                text: app.translations.get('ethereum')
+                on_release: root.switch_network('ethereum')
+
+            VantaButton:
+                id: network_polygon_btn
+                text: app.translations.get('polygon')
+                on_release: root.switch_network('polygon')
+
+<AnalyticsScreen>:
+    name: 'analytics'
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 20
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+
+            VantaButton:
+                text: app.translations.get('back')
+                on_release: app.root.current = 'home'
+
+        Label:
+            id: analytics_title
+            text: app.translations.get('analytics')
+            font_size: '24sp'
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 40
+
+        GridLayout:
+            cols: 3
+            size_hint_y: None
+            height: 120
+            spacing: 15
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                canvas.before:
+                    Color:
+                        rgba: 0.15, 0.15, 0.15, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                Label:
+                    id: views_label
+                    text: app.translations.get('total_views')
+                    color: 0.7, 0.7, 0.7, 1
+                    font_size: '12sp'
+                Label:
+                    id: views_value
+                    text: root.views_count
+                    color: 1, 1, 1, 1
+                    font_size: '20sp'
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                canvas.before:
+                    Color:
+                        rgba: 0.15, 0.15, 0.15, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                Label:
+                    id: sales_label
+                    text: app.translations.get('total_sales')
+                    color: 0.7, 0.7, 0.7, 1
+                    font_size: '12sp'
+                Label:
+                    id: sales_value
+                    text: root.sales_volume
+                    color: 1, 1, 1, 1
+                    font_size: '20sp'
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                canvas.before:
+                    Color:
+                        rgba: 0.15, 0.15, 0.15, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                Label:
+                    id: likes_label
+                    text: app.translations.get('likes')
+                    color: 0.7, 0.7, 0.7, 1
+                    font_size: '12sp'
+                Label:
+                    id: likes_value
+                    text: root.likes_count
+                    color: 1, 1, 1, 1
+                    font_size: '20sp'
+
+        Label:
+            text: app.translations.get('price_history')
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 30
+
+        PriceChartBars:
+            id: price_chart
+
+<SettingsScreen>:
+    name: 'settings'
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 20
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+
+            VantaButton:
+                text: app.translations.get('back')
+                on_release: app.root.current = 'home'
+
+        Label:
+            text: app.translations.get('preferences')
+            font_size: '24sp'
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 40
+
+        Label:
+            text: app.translations.get('language')
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 30
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+            spacing: 15
+
+            VantaButton:
+                id: lang_en_btn
+                text: app.translations.get('english')
+                on_release: root.set_language('en')
+
+            VantaButton:
+                id: lang_fa_btn
+                text: app.translations.get('persian')
+                on_release: root.set_language('fa')
