@@ -1,0 +1,334 @@
+# ===========================================================
+# 1. تنظیمات گرافیکی (تم سایبرپانک)
+# ===========================================================
+from kivy.config import Config
+Config.set('graphics', 'width', '1024')
+Config.set('graphics', 'height', '768')
+Config.set('graphics', 'window_state', 'maximized') 
+
+# ===========================================================
+# 2. ایمپورت‌ها (شامل انیمیشن و ترنزیشن)
+# ===========================================================
+from kivy.app import App
+from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from kivy.graphics import Rectangle, Line, Color, RoundedRectangle
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.factory import Factory
+from kivy.clock import Clock
+from kivy.animation import Animation
+from kivy.uix.popup import Popup
+import os
+from datetime import datetime
+#from eth_account import Account
+#from web3 import Web3
+import json
+
+# رنگ پس‌زمینه عمیق
+Window.clearcolor = (0.02, 0.02, 0.05, 1) 
+
+# ===========================================================
+# 3. مدیریت کیف پول
+# ===========================================================
+class WalletManager:
+    def __init__(self):
+        self.account = None
+        self.w3 = None
+        self.wallet_file = 'vanta_wallet.json'
+        self.connect_to_blockchain()
+
+    def connect_to_blockchain(self):
+        try:
+            self.w3 = Web3(Web3.HTTPProvider('https://cloudflare-eth.com'))
+            if self.w3.is_connected(): print("✅ Blockchain Live")
+        except: pass
+
+    def create_or_load_wallet(self):
+        if os.path.exists(self.wallet_file):
+            try:
+                with open(self.wallet_file, 'r') as f:
+                    self.account = Account.from_key(json.load(f).get('private_key'))
+            except: pass
+        else:
+            self.account = Account.create()
+            try:
+                with open(self.wallet_file, 'w') as f:
+                    json.dump({'private_key': self.account.key.hex()}, f)
+            except: pass
+
+    def get_balance(self):
+        if self.w3 and self.account:
+            try:
+                return float(self.w3.from_wei(self.w3.eth.get_balance(self.account.address), 'ether'))
+            except: return 0.0
+        return 0.0
+
+wallet_manager = WalletManager()
+wallet_manager.create_or_load_wallet()
+
+# ===========================================================
+# 4. استایل‌های نئونی پیشرفته (KV Language)
+# ===========================================================
+Builder.load_string('''
+<NeonButton@Button>:
+    background_color: 0, 0, 0, 0 
+    canvas.before:
+        Color:
+            rgba: 0, 1, 1, 0.2 
+        Line:
+            width: 1.5
+            rounded_rectangle: self.x, self.y, self.width, self.height, 15, 15, 15, 15
+    color: 0, 1, 1, 1 
+    font_size: '18sp'
+    bold: True
+
+<CyberCard@ButtonBehavior+BoxLayout>:
+    orientation: 'vertical'
+    size_hint: None, None
+    size: 170, 170
+    canvas.before:
+        Color:
+            rgba: 0.05, 0.05, 0.1, 1
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [20, 20, 20, 20]
+        Color:
+            rgba: 1, 0, 1, 0.5 
+        Line:
+            width: 2
+            rounded_rectangle: self.x, self.y, self.width, self.height, 20, 20, 20, 20
+    Label:
+        id: icon_label
+        font_size: '60sp'
+        color: 1, 1, 1, 1
+        size_hint_y: 0.6
+    Label:
+        id: text_label
+        font_size: '18sp'
+        color: 0.8, 0.8, 1, 1
+        size_hint_y: 0.4
+        bold: True
+        text: 'Button'
+
+<BackBtn@Button>:
+    text: 'Back'
+    background_color: 0, 0, 0, 0
+    canvas.before:
+        Color:
+            rgba: 1, 0.4, 0.4, 0.5
+        Line:
+            width: 1.5
+            rectangle: self.x, self.y, self.width, self.height
+    color: 1, 0.4, 0.4, 1
+    size_hint: None, None
+    size: 100, 50
+
+<GlassBar@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: 0.1, 0.1, 0.15, 0.9 
+        Rectangle:
+            pos: self.pos
+            size: self.size
+''')
+
+# ===========================================================
+# 5. ویجت نقاشی
+# ===========================================================
+class PaintWidget(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.paint_color = (0.8, 0.0, 1.0, 1) 
+        self.paint_width = 5
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            with self.canvas:
+                Color(*self.paint_color)
+                touch.ud['line'] = Line(points=[touch.x, touch.y], width=self.paint_width, cap='round', joint='round')
+            return True
+
+    def on_touch_move(self, touch):
+        if 'line' in touch.ud:
+            touch.ud['line'].points += [touch.x, touch.y]
+    
+    def clear_canvas(self):
+        self.canvas.clear()
+        with self.canvas.before:
+            Color(0.05, 0.05, 0.05, 1)
+            Rectangle(pos=self.pos, size=self.size)
+
+# ===========================================================
+# 6. صفحات برنامه
+# ===========================================================
+
+class HomeScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = 'home'
+        
+        layout = BoxLayout(orientation='vertical', padding=30, spacing=30)
+        
+        header = Label(text='[b]VANTA PRO[/b]', font_size='60sp', color=(0, 1, 1, 1), markup=True, size_hint=(1, 0.2))
+        
+        grid = GridLayout(cols=2, spacing=25, size_hint=(1, 0.6))
+        self.grid = grid 
+        
+        def go_to_paint(instance): self.manager.current = 'paint'
+        def go_to_sell(instance): self.manager.current = 'sell'
+        def go_to_wallet(instance): self.manager.current = 'wallet'
+        
+        paint_tile = Factory.CyberCard()
+        paint_tile.ids.icon_label.text = '🎨'
+        paint_tile.ids.text_label.text = 'Paint'
+        paint_tile.bind(on_press=go_to_paint)
+        
+        sell_tile = Factory.CyberCard()
+        sell_tile.ids.icon_label.text = '💎'
+        sell_tile.ids.text_label.text = 'Sell NFT'
+        sell_tile.bind(on_press=go_to_sell)
+        
+        wallet_tile = Factory.CyberCard()
+        wallet_tile.ids.icon_label.text = '🔗'
+        wallet_tile.ids.text_label.text = 'Wallet'
+        wallet_tile.bind(on_press=go_to_wallet)
+        
+        grid.add_widget(paint_tile)
+        grid.add_widget(sell_tile)
+        grid.add_widget(wallet_tile)
+        
+        layout.add_widget(header)
+        layout.add_widget(grid)
+        self.add_widget(layout)
+
+    def on_enter(self, *args):
+        for child in self.grid.children:
+            child.y = child.y - 50
+            child.opacity = 0
+            anim = Animation(y=child.y + 50, opacity=1, duration=0.5, transition='out_cubic')
+            anim.start(child)
+
+class PaintScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = 'paint'
+
+        def go_back(instance): self.manager.current = 'home'
+        def clear_canvas(instance): self.paint_area.clear_canvas()
+        
+        def save_and_mint(instance):
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"Vanta_Art_{timestamp}.png"
+            try:
+                self.paint_area.export_to_png(filename)
+                save_btn.text = "Saved!"
+                print(f"✅ Saved: {filename}")
+                def reset(dt): save_btn.text = 'Save & Mint'
+                Clock.schedule_once(reset, 2)
+            except Exception as e:
+                print(f"❌ Error: {e}")
+
+        layout = BoxLayout(orientation='vertical')
+        
+        top_bar = Factory.GlassBar(size_hint=(1, 0.1), spacing=10, padding=15)
+        back_btn = Factory.BackBtn(on_press=go_back)
+        lbl = Label(text='Create Art', color=(1,1,1,1), font_size='20sp', bold=True)
+        clear_btn = Factory.NeonButton(text='Clear', size_hint=(0.3, 1))
+        
+        top_bar.add_widget(back_btn)
+        top_bar.add_widget(lbl)
+        top_bar.add_widget(clear_btn)
+        
+        self.paint_area = PaintWidget()
+        with self.paint_area.canvas.before:
+            Color(0.05, 0.05, 0.05, 1)
+            self.bg_rect = Rectangle(pos=self.paint_area.pos, size=self.paint_area.size)
+        
+        clear_btn.bind(on_press=clear_canvas)
+        save_btn = Factory.NeonButton(text='Save & Mint', size_hint=(1, 0.1))
+        save_btn.bind(on_press=save_and_mint)
+        
+        layout.add_widget(top_bar)
+        layout.add_widget(self.paint_area)
+        layout.add_widget(save_btn)
+        
+        self.add_widget(layout)
+
+class SellScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = 'sell'
+        def go_back(instance): self.manager.current = 'home'
+        layout = BoxLayout(orientation='vertical', padding=20, spacing=20)
+        
+        top_bar = Factory.GlassBar(size_hint=(1, 0.1))
+        back_btn = Factory.BackBtn(on_press=go_back)
+        lbl = Label(text='Marketplace', color=(1,1,1,1), font_size='20sp', bold=True)
+        top_bar.add_widget(back_btn)
+        top_bar.add_widget(lbl)
+        
+        content = BoxLayout(orientation='vertical', spacing=20)
+        content.add_widget(Label(text='Set Price (ETH):', color=(0, 1, 1, 1), halign='left', size_hint=(1, 0.1), font_size='18sp', bold=True))
+        price_box = Factory.NeonButton(text='0.5 ETH', size_hint=(1, 0.1))
+        list_btn = Factory.NeonButton(text='List for Sale', size_hint=(1, 0.1))
+        layout.add_widget(top_bar)
+        layout.add_widget(content)
+        content.add_widget(price_box)
+        content.add_widget(list_btn)
+        self.add_widget(layout)
+
+class WalletScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = 'wallet'
+        def go_back(instance): self.manager.current = 'home'
+        layout = BoxLayout(orientation='vertical', padding=20)
+        
+        top_bar = Factory.GlassBar(size_hint=(1, 0.1))
+        back_btn = Factory.BackBtn(on_press=go_back)
+        lbl = Label(text='My Vault', color=(1,1,1,1), font_size='20sp', bold=True)
+        top_bar.add_widget(back_btn)
+        top_bar.add_widget(lbl)
+        
+        info_box = BoxLayout(orientation='vertical', size_hint=(1, 0.4), spacing=15, padding=20)
+        
+        # --- اصلاح شده: استفاده از with به جای دو نقطه ---
+        with info_box.canvas.before:
+            Color(rgba=(0.05, 0.05, 0.08, 1))
+            self.info_rect = RoundedRectangle(pos=info_box.pos, size=info_box.size, radius=[15, 15, 15, 15])
+            Color(rgba=(1, 0.4, 0.4, 0.3))
+            Line(rounded_rectangle=(info_box.x, info_box.y, info_box.width, info_box.height, 15, 15, 15, 15), width=1.5)
+        # --------------------------------------------------
+        
+        address_text = wallet_manager.account.address if wallet_manager.account else "No Wallet"
+        balance = wallet_manager.get_balance()
+        
+        info_box.add_widget(Label(text='Total Balance', color=(0.6,0.6,0.6,1), font_size='14sp'))
+        info_box.add_widget(Label(text=f'{balance:.4f} ETH', font_size='40sp', color=(1, 0.4, 0.4, 1), bold=True))
+        info_box.add_widget(Label(text=f'Address: {address_text[:10]}...', color=(0.8,0.8,0.8,1)))
+        
+        layout.add_widget(top_bar)
+        layout.add_widget(info_box)
+        self.add_widget(layout)
+
+# ===========================================================
+# 7. اجرای برنامه
+# ===========================================================
+class VantaApp(App):
+    def build(self):
+        sm = ScreenManager(transition=SlideTransition(direction='left'))
+        sm.add_widget(HomeScreen())
+        sm.add_widget(PaintScreen())
+        sm.add_widget(SellScreen())
+        sm.add_widget(WalletScreen())
+        sm.current = 'home'
+        return sm
+
+if __name__ == '__main__':
+    VantaApp().run()
