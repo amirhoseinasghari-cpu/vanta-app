@@ -1,0 +1,61 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          python3-pip \
+          build-essential \
+          git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          liblzma-dev \
+          cmake
+    
+    - name: Install buildozer
+      run: |
+        pip install buildozer cython
+    
+    - name: Build APK
+      run: |
+        buildozer android debug 2>&1 | tee build.log
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: vanta-apk
+        path: bin/*.apk
+        retention-days: 5
+    
+    - name: Upload logs (if failed)
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: build-logs
+        path: build.log
